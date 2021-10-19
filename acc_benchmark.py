@@ -99,7 +99,7 @@ if __name__ == '__main__':
     module = GridSample1d()
 
     batch_size = 20
-    C = 512
+    C = 256
     L_in = 16
     L_out = 32
 
@@ -168,8 +168,8 @@ if __name__ == '__main__':
                     assert torch.allclose(grad_grid_original, grad_grid_mine, atol=eps, rtol=eps_r)
                     assert torch.allclose(grad_input_original, grad_input_mine, atol=eps, rtol=eps_r)
                 except AssertionError:
-                    N_err_grid = inspect(grad_grid_mine, grad_grid_original)
-                    N_err_input = inspect(grad_input_mine, grad_input_original)
+                    N_err_grid = inspect(grad_grid_mine, grad_grid_original,verbose=True)
+                    N_err_input = inspect(grad_input_mine, grad_input_original,verbose=True)
 
                     running_err_backward_grid += N_err_grid / torch.numel(grad_grid_mine)
                     running_err_backward_input += N_err_input / torch.numel(grad_input_mine)

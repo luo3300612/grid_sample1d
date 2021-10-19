@@ -212,7 +212,8 @@ __global__ void grid_sample1d_cuda_backward_kernel(
 
   if (index < N){
     const int l = index % L_out;
-    const int n = index / L_out;
+    const int c = (index/L_out) % C;
+    const int n = index / (C * L_out);
 
     const int grid_offset = n * L_out + l;
 //
@@ -223,45 +224,40 @@ __global__ void grid_sample1d_cuda_backward_kernel(
     const int index_left = ::floor(ix);
     const int index_right = index_left + 1;
 
+    const int output_offset = l + c * L_out + n * C * L_out;
+    const int grad_output_offset = l + c * L_out + n * C * L_out;
 
     scalar_t surface_left = index_right-ix;
     scalar_t surface_right = ix-index_left;
 
     scalar_t gix = static_cast<scalar_t>(0);
 
-    for(int c=0; c<C;++c){
-        const int output_offset = l + c * L_out + n * C * L_out;
-        const int grad_output_offset = l + c * L_out + n * C * L_out;
+    const int input_left_offset = index_left + c * L_in + n * L_in * C;
+    const int input_right_offset = index_right + c * L_in + n * L_in * C;
 
-        const int input_left_offset = index_left + c * L_in + n * L_in * C;
-        const int input_right_offset = index_right + c * L_in + n * L_in * C;
+    scalar_t gOut = grad_output[grad_output_offset];
+    // for grad input
+    if (within_bounds(index_left, L_in)) {
+        if(!align_corners&&!padding_mode)atomicAdd(grad_input + input_left_offset, surface_left * gOut / 2.f);
+        else atomicAdd(grad_input + input_left_offset, surface_left * gOut);
+    }
 
-        scalar_t gOut = grad_output[grad_output_offset];
-
-        if (within_bounds(index_left, L_in)) {
-            if(!align_corners&&!padding_mode)atomicAdd(grad_input + input_left_offset, surface_left * gOut / 2.f);
-            else atomicAdd(grad_input + input_left_offset, surface_left * gOut);
-        }
-        if(within_bounds(index_right, L_in)){
-            if(!align_corners&&!padding_mode) atomicAdd(grad_input + input_right_offset, surface_right * gOut / 2.f);
-            else atomicAdd(grad_input + input_right_offset, surface_right * gOut);
-        }
-
-        if (within_bounds(index_left, L_in)) { // order is important
-    //        gix -= surface_left * input[input_left_offset] * gOut;
-            gix -= input[input_left_offset] * gOut;
-        }
-
-        if(within_bounds(index_right, L_in)){
-    //        gix += surface_right * input[input_right_offset] * gOut;
-            gix += input[input_right_offset] * gOut;
-        }
-
-
-
+    if(within_bounds(index_right, L_in)){
+        if(!align_corners&&!padding_mode) atomicAdd(grad_input + input_right_offset, surface_right * gOut / 2.f);
+        else atomicAdd(grad_input + input_right_offset, surface_right * gOut);
+    }
+    // for grad grid
+    if (within_bounds(index_left, L_in)) {
+//        gix -= surface_left * input[input_left_offset] * gOut;
+        gix -= input[input_left_offset] * gOut;
+    }
+    if(within_bounds(index_right, L_in)){
+//        gix += surface_right * input[input_right_offset] * gOut;
+        gix += input[input_right_offset] * gOut;
     }
     if(!align_corners&&!padding_mode) gix /= 2;
-    grad_grid[grid_offset] =  gix*gix_mult;
+    atomicAdd(grad_grid+grid_offset, gix*gix_mult);
+//    grad_grid[grid_offset] = gix * gix_mult;
   }
 }
 
@@ -321,7 +317,7 @@ std::vector<torch::Tensor> grid_sample1d_cuda_backward(
     torch::Tensor grad_grid = torch::zeros_like(grid);
 
     const int threads = 1024;
-    const int N = L_out*batch_size;
+    const int N = C*L_out*batch_size;
     const int blocks = (N + threads-1)/ threads;
 
     AT_DISPATCH_FLOATING_TYPES(input.type(), "grid_sample1d_backward_cuda", ([&] {

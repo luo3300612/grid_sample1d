@@ -33,3 +33,7 @@ input # 4 * 256 * 16
 forward backward done
 
 但backward error会随着C的增大而增大
+
+修改为C上串行后，除了当padding mode=zeros,align_corners=True以外，不再存在上述问题
+
+尝试修改了backward中grid梯度两个计算Block的顺序，结果会与2d的sample不同，这也表明了浮点数累加不满足结合律这一问题
