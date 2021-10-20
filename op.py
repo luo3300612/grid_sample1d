@@ -9,9 +9,7 @@ import torch.nn.functional
 
 # grid_sample1d = load(
 #     'grid_sample1d_cuda', ['grid_sample1d_cuda.cpp', 'grid_sample1d_cuda_kernel.cu'], verbose=True)
-# help(lltm_cuda)
 
-# import lltm_cuda
 
 torch.manual_seed(42)
 
@@ -41,8 +39,14 @@ class GridSample1dFunction(Function):
 
 
 class GridSample1d(nn.Module):
-    def __init__(self):
+    def __init__(self, padding_mode, align_corners):
+        '''
+        :param padding_mode: True for border padding, False for zero padding
+        :param align_corners: same with grid_sample in pytorch
+        '''
         super(GridSample1d, self).__init__()
+        self.padding_mode = padding_mode
+        self.align_corners = align_corners
 
-    def forward(self, input, grid, padding_mode, align_corners):
-        return GridSample1dFunction.apply(input, grid, padding_mode, align_corners)
+    def forward(self, input, grid):
+        return GridSample1dFunction.apply(input, grid, self.padding_mode, self.align_corners)

@@ -224,6 +224,9 @@ __global__ void grid_sample1d_cuda_backward_kernel(
     scalar_t surface_left = index_right-ix;
     scalar_t surface_right = ix-index_left;
 
+    scalar_t iy = static_cast<scalar_t>(0);
+    scalar_t iy_se = static_cast<scalar_t>(1);
+
     scalar_t gix = static_cast<scalar_t>(0);
 
     for(int c=0; c<C;++c){
@@ -244,12 +247,12 @@ __global__ void grid_sample1d_cuda_backward_kernel(
 
         if (within_bounds(index_left, L_in)) { // order is important
     //        gix -= surface_left * input[input_left_offset] * gOut;
-            gix -= input[input_left_offset] * gOut;
+            gix -= input[input_left_offset] * (iy_se-iy) * gOut;
         }
 
         if(within_bounds(index_right, L_in)){
     //        gix += surface_right * input[input_right_offset] * gOut;
-            gix += input[input_right_offset] * gOut;
+            gix += input[input_right_offset] * (iy_se-iy) * gOut;
         }
     }
     grad_grid[grid_offset] =  gix*gix_mult;

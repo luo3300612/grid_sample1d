@@ -15,14 +15,14 @@ def setup_seed(seed):
 
 
 args_groups = [
-    # {'original': {'padding_mode': 'zeros', 'align_corners': True},
-    #  'mine': {'padding_mode': False, 'align_corners': True}},
+    {'original': {'padding_mode': 'zeros', 'align_corners': True},
+     'mine': {'padding_mode': False, 'align_corners': True}},
     {'original': {'padding_mode': 'zeros', 'align_corners': False},
      'mine': {'padding_mode': False, 'align_corners': False}},
-    # {'original': {'padding_mode': 'border', 'align_corners': True},
-    #  'mine': {'padding_mode': True, 'align_corners': True}},
-    # {'original': {'padding_mode': 'border', 'align_corners': False},
-    #  'mine': {'padding_mode': True, 'align_corners': False}}
+    {'original': {'padding_mode': 'border', 'align_corners': True},
+     'mine': {'padding_mode': True, 'align_corners': True}},
+    {'original': {'padding_mode': 'border', 'align_corners': False},
+     'mine': {'padding_mode': True, 'align_corners': False}}
 ]
 
 
@@ -35,15 +35,17 @@ def original(input, grid, padding_mode, align_corners):
     grid = grid.unsqueeze(1)  # batch_size * 1 * L_out
     grid = torch.stack([-torch.ones_like(grid), grid], dim=-1)
     z = F.grid_sample(input, grid, padding_mode=padding_mode, align_corners=align_corners)
+    C = input.shape[1]
     out_shape = [shape[0], C, shape[1]]
     z = z.view(*out_shape)  # batch_size * C * L_out
     return z
 
 
-def mine(input, grid, module, padding_mode, align_corners):
+def mine(input, grid, module):
     shape = grid.shape
     grid = grid.sin()
-    z = module(input, grid, padding_mode=padding_mode, align_corners=align_corners)
+    z = module(input, grid)
+    C = input.shape[1]
     out_shape = [shape[0], C, shape[1]]
     z = z.view(*out_shape)
     return z
@@ -96,7 +98,6 @@ def inspect(output, output_origin, verbose_matrix=False, verbose=False):
 
 if __name__ == '__main__':
     setup_seed(0)
-    module = GridSample1d()
 
     batch_size = 20
     C = 256
@@ -112,6 +113,8 @@ if __name__ == '__main__':
     for args in args_groups:
         print('testing')
         print(args)
+
+        module = GridSample1d(**args['mine'])
         running_err_forward = 0.
         running_err_backward_input = 0.
         running_err_backward_grid = 0.
@@ -120,7 +123,7 @@ if __name__ == '__main__':
                 for i in tqdm(range(N_samples)):
                     input = torch.randn((batch_size, C, L_in)).cuda()
                     grid = torch.randn(batch_size, L_out).cuda()
-                    output = mine(input, grid, module, **args['mine']).cpu()
+                    output = mine(input, grid, module).cpu()
                     output_origin = original(input, grid, **args['original']).cpu()
                     try:
                         if (not args['mine']['padding_mode']) and (not args['mine']['align_corners']):
@@ -151,7 +154,7 @@ if __name__ == '__main__':
                 input_mine.retain_grad()
 
                 output_origin = original(input_original, grid_original, **args['original'])
-                output = mine(input_mine, grid_mine, module, **args['mine'])
+                output = mine(input_mine, grid_mine, module)
 
                 if (not args['mine']['padding_mode']) and (not args['mine']['align_corners']):
                     assert torch.allclose(output, output_origin*2, atol=eps, rtol=eps_r)
