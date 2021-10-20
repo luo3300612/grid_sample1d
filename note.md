@@ -37,3 +37,8 @@ forward backward done
 修改为C上串行后，除了当padding mode=zeros,align_corners=True以外，不再存在上述问题
 
 尝试修改了backward中grid梯度两个计算Block的顺序，结果会与2d的sample不同，这也表明了浮点数累加不满足结合律这一问题
+
+修复了align=false,zero padding下结果是两倍的问题
+## 一个问题
+pytorch中的2d grid sample，在双线性插值，且zero padding模式align_corners=False时是不适用H/W中有一个是1的情况的，最终的结果会是真实结果的0.5倍，这主要是因为align_corner为False时，1维的坐标变成-0.5，
+而生成出来的需要插值坐标的左右近邻必有一个不满足within_bounds的判断，最终会忽略掉恰好一半的数值

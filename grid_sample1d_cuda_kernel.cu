@@ -186,9 +186,6 @@ __global__ void grid_sample1d_cuda_forward_kernel(
     if(within_bounds(index_right, L_in)){
         output[output_offset] += input[input_right_offset] * surface_right;
     }
-    if(!align_corners&&!padding_mode){
-        output[output_offset] /= 2.f; // why?
-    }
 //    output[output_offset] = (ix-index_left) * (input[input_right_offset] - input[input_left_offset]) + input[input_left_offset];
   }
 }
@@ -239,12 +236,10 @@ __global__ void grid_sample1d_cuda_backward_kernel(
         scalar_t gOut = grad_output[grad_output_offset];
 
         if (within_bounds(index_left, L_in)) {
-            if(!align_corners&&!padding_mode)atomicAdd(grad_input + input_left_offset, surface_left * gOut / 2.f);
-            else atomicAdd(grad_input + input_left_offset, surface_left * gOut);
+            atomicAdd(grad_input + input_left_offset, surface_left * gOut);
         }
         if(within_bounds(index_right, L_in)){
-            if(!align_corners&&!padding_mode) atomicAdd(grad_input + input_right_offset, surface_right * gOut / 2.f);
-            else atomicAdd(grad_input + input_right_offset, surface_right * gOut);
+            atomicAdd(grad_input + input_right_offset, surface_right * gOut);
         }
 
         if (within_bounds(index_left, L_in)) { // order is important
@@ -256,15 +251,10 @@ __global__ void grid_sample1d_cuda_backward_kernel(
     //        gix += surface_right * input[input_right_offset] * gOut;
             gix += input[input_right_offset] * gOut;
         }
-
-
-
     }
-    if(!align_corners&&!padding_mode) gix /= 2;
     grad_grid[grid_offset] =  gix*gix_mult;
   }
 }
-
 }
 
 torch::Tensor grid_sample1d_cuda_forward(
