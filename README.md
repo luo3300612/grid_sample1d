@@ -19,9 +19,9 @@ python setup.py install
 
 ### JIT
 
-common `import grid_sample1d_cuda as grid_sample1d` in op.py
+comment `import grid_sample1d_cuda as grid_sample1d` in op.py
 
-uncommon
+uncomment
 
 ```python
 grid_sample1d = load(
@@ -83,7 +83,7 @@ def gridsample1d_by2d(input, grid, padding_mode, align_corners):
 It is recommended to test on your PC because I only test it on CUDA 10.1 GTX 1080Ti
 
 ```bash
-python acc_benchmark.py
+python test/acc_benchmark.py
 ```
 
 Both the forward and the backward results are identical except for align_corners=True, padding_mode=False. It may caused
@@ -95,7 +95,7 @@ It is very important to do deterministic test since the associative law is no mo
 numbers on computers.
 
 ```bash
-python check_deterministic.py
+python test/check_deterministic.py
 ```
 
 ## Note

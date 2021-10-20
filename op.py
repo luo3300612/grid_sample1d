@@ -7,12 +7,9 @@ from torch.utils.cpp_extension import load
 import grid_sample1d_cuda as grid_sample1d
 import torch.nn.functional
 
+
 # grid_sample1d = load(
-#     'grid_sample1d_cuda', ['grid_sample1d_cuda.cpp', 'grid_sample1d_cuda_kernel.cu'], verbose=True)
-
-
-torch.manual_seed(42)
-
+#     'grid_sample1d_cuda', ['src/grid_sample1d_cuda.cpp', 'src/grid_sample1d_cuda_kernel.cu'], verbose=True)
 
 class GridSample1dFunction(Function):
     @staticmethod
