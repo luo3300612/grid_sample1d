@@ -1,6 +1,6 @@
 # Grid Sample 1d
 
-pytorch cuda extension of grid sample 1d. Since pytorch only support grid sample 2d/3d, I extend the 1d version for
+pytorch cuda extension of grid sample 1d. Since pytorch only supports grid sample 2d/3d, I extend the 1d version for
 efficiency.
 
 ## setup
