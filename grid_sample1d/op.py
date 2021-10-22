@@ -4,12 +4,12 @@ from torch.autograd import Function
 import torch
 from torch.utils.cpp_extension import load
 
-import grid_sample1d_cuda as grid_sample1d
-import torch.nn.functional
+# build by python setup.py install
+# import grid_sample1d_cuda as grid_sample1d
 
-
-# grid_sample1d = load(
-#     'grid_sample1d_cuda', ['src/grid_sample1d_cuda.cpp', 'src/grid_sample1d_cuda_kernel.cu'], verbose=True)
+# jit
+grid_sample1d = load(
+    'grid_sample1d_cuda', ['src/grid_sample1d_cuda.cpp', 'src/grid_sample1d_cuda_kernel.cu'], verbose=True)
 
 class GridSample1dFunction(Function):
     @staticmethod

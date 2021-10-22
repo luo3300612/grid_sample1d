@@ -1,6 +1,6 @@
 import time
 import torch
-from op import GridSample1d
+from grid_sample1d import GridSample1d
 from acc_benchmark import original, mine, args_groups
 import json
 

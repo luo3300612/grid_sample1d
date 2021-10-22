@@ -1,5 +1,5 @@
 import torch
-from op import GridSample1d
+from grid_sample1d import GridSample1d
 import torch.nn.functional as F
 from tqdm import tqdm
 import numpy as np

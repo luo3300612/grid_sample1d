@@ -1,11 +1,7 @@
 import torch
-from op import GridSample1d
-import torch.nn.functional as F
+from grid_sample1d.op import GridSample1d
 from tqdm import tqdm
-import numpy as np
-import random
-from acc_benchmark import args_groups, original, mine, inspect, setup_seed
-
+from acc_benchmark import args_groups, mine, inspect, setup_seed
 
 if __name__ == '__main__':
     setup_seed(0)
