@@ -34,7 +34,7 @@ in op.py
 
 ```python
 import torch
-from op import GridSample1d
+from grid_sample1d import GridSample1d
 
 grid_sample1d = GridSample1d(padding_mode=True, align_corners=True)
 N = 16
