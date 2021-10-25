@@ -80,7 +80,7 @@ def gridsample1d_by2d(input, grid, padding_mode, align_corners):
     return z
 ```
 
-It is recommended to test on your PC because I only test it on CUDA 10.1 GTX 1080Ti
+It is recommended to test on your computer because I only test it on CUDA 10.1 GTX 1080Ti
 
 ```bash
 python test/acc_benchmark.py
