@@ -8,7 +8,7 @@ efficiency. The forward pass is 2~3x faster than pytorch grid sample.
 * Pytorch == 1.7.1
 * CUDA == 10.1
 
-Other versions of pytorch or cuda may work but I didn't test.
+Other versions of pytorch or cuda may work but I haven't test.
 
 you can choose to manually build it or use JIT
 ### Build
